@@ -8,14 +8,13 @@ const app = express();
 
 const port = process.env.PORT || 8080;
 const interval = process.env.INTERVAL || 300000;
-const dbId = process.env.NOTION_DATABASE_ID;
 const organisation = process.env.ORGANISATION;
 const dateProperty = process.env.DATE_PROPERTY_NAME || 'Due';
 const calendar = ical({ name: 'Notion Workspace' });
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
-const urlFromId = (theId) => `https://notion.so/${organisation}/${dbId}&p=${theId.replace(/-/g, '')}`;
+const urlFromId = (theId, dbId) => `https://notion.so/${organisation}/${dbId}&p=${theId.replace(/-/g, '')}`;
 
 const refreshCalendar = async () => {
 	// might need to alter it in the future for large databases / datasets,
@@ -38,7 +37,7 @@ const refreshCalendar = async () => {
 
 			const results = response.results;
 			for (const event of results) {
-				const url = urlFromId(event.id);
+				const url = urlFromId(event.id, db.id);
 				const start = new Date(Date.parse(event.properties[dateProperty].date.start));
 				const end = event.properties[dateProperty].date.end ? new Date(Date.parse(event.properties[dateProperty].date.end)) : new Date(start.getTime() + 3600000);
 				const lastChange = event.last_edited_time;
