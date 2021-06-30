@@ -1,5 +1,6 @@
 const express = require('express');
 const ical = require('ical-generator');
+const logger = require('./logger');
 const { Client } = require('@notionhq/client');
 require('dotenv').config();
 
@@ -17,35 +18,39 @@ const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const urlFromId = (theId) => `https://notion.so/${organisation}/${dbId}&p=${theId.replace(/-/g, '')}`;
 
 const refreshCalendar = async () => {
-	calendar.clear()
-	const response = await notion.databases.query({
-		database_id: dbId,
-		filter: {
-			property: dateProperty,
-			date: {
-				is_not_empty: true,
-			},
-		},
-	});
+	// might need to alter it in the future for large databases / datasets,
+	// given that iterating EVERY SINGLE event can be computationally taxing.
+	try {
+		calendar.clear();
+		const databases = (await notion.databases.list()).results;
 
-	const results = response.results;
-	for (const event of results) {
-		const url = urlFromId(event.id);
-		const start = new Date(Date.parse(event.properties[dateProperty].date.start));
-		const end = event.properties[dateProperty].date.end ? new Date(Date.parse(event.properties[dateProperty].date.end)) : new Date(start.getTime() + 3600000);
-		const lastChange = event.last_edited_time;
-		// It goes:
-		// properties -> Name -> id: 'title' -> title Array
-		const title = (Object.values(event.properties).find((obj) => obj['id'] == 'title')).title[0].plain_text;
-		// if (calendar.events().some((e) => e.description == `Last edited at: ${lastChange}` && e.url == url)) {
-		// 	console.log(`No change to event ${url}`);
-		// } else {
-		// 	console.log('creating new event...');
-		// 	const newEvent = calendar.events().find((event) => event.url == url);
-		// 	const eventIndex = calendar.events().findIndex((event) => event.url == url);
-		// 	eventIndex > -1 ? calendar.events[eventIndex] = newEvent :
-		calendar.createEvent({ url: url, summary: title, start: start, end: end, description: `Last edited at: ${lastChange}` });
-		// }
+		for (const db of databases) {
+			logger.log(`Querying database for ${db.id}`);
+			const response = await notion.databases.query({
+				database_id: db.id,
+				filter: {
+					property: dateProperty,
+					date: {
+						is_not_empty: true,
+					},
+				},
+			});
+
+			const results = response.results;
+			for (const event of results) {
+				const url = urlFromId(event.id);
+				const start = new Date(Date.parse(event.properties[dateProperty].date.start));
+				const end = event.properties[dateProperty].date.end ? new Date(Date.parse(event.properties[dateProperty].date.end)) : new Date(start.getTime() + 3600000);
+				const lastChange = event.last_edited_time;
+				// It goes:
+				// properties -> Name -> id: 'title' -> title Array
+				const title = (Object.values(event.properties).find((obj) => obj['id'] == 'title')).title[0].plain_text;
+				calendar.createEvent({ url: url, summary: title, start: start, end: end, description: `Last edited at: ${lastChange}` });
+			}
+			logger.log(`Created ${results.length} events for database ${db.id}`);
+		}
+	} catch (err) {
+		logger.error(err);
 	}
 };
 
@@ -54,8 +59,8 @@ app.get('/cal/:dbId', (req, res) => calendar.serve(res));
 setInterval(refreshCalendar, interval);
 
 app.listen(port, () => {
-	console.log(`Listening on port ${port}`);
+	logger.log(`Listening on port ${port}`);
 	refreshCalendar();
 });
 
-process.on('uncaughtException', (err) => console.error(err));
+process.on('uncaughtException', (err) => logger.error(err));

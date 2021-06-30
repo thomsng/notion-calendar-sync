@@ -7,7 +7,8 @@
 		"@notionhq/client": "^0.1.3",
 		"dotenv": "^9.0.2",
 		"express": "^4.17.1",
-		"ical-generator": "^2.1.0"
+		"ical-generator": "^2.1.0",
+		"moment": "^2.29.1"
 	},
 	"devDependencies": {
 		"eslint": "^7.26.0"
