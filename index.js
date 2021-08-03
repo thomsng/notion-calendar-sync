@@ -53,13 +53,17 @@ const refreshCalendar = async () => {
 	}
 };
 
+app.get('/cal', (req, res) => calendar.serve(res));
 app.get('/cal/:dbId', (req, res) => calendar.serve(res));
 
 setInterval(refreshCalendar, interval);
 
 app.listen(port, () => {
 	logger.log(`Listening on port ${port}`);
-	refreshCalendar();
+	// refreshCalendar();
+	notion.blocks.children.list({ block_id: '95ae141d63504b38b7f5e7c6bc10bd7d' }).then((res) => {
+		console.dir(res, { depth: null });
+	});
 });
 
 process.on('uncaughtException', (err) => logger.error(err));
