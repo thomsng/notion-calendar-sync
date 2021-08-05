@@ -24,6 +24,12 @@ const refreshCalendar = async () => {
 		const databases = (await notion.databases.list()).results;
 
 		for (const db of databases) {
+			// skip if there is no date property on DB
+			if (!db.properties[dateProperty]) {
+				logger.log(`No date property for database ${db.id}`);
+				continue;
+			}
+
 			logger.log(`Querying database for ${db.id}`);
 			const response = await notion.databases.query({
 				database_id: db.id,
