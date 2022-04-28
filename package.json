@@ -8,7 +8,7 @@
 		"dotenv": "^9.0.2",
 		"express": "^4.17.1",
 		"ical-generator": "^2.1.0",
-		"moment": "^2.29.1"
+		"moment": "^2.29.2"
 	},
 	"devDependencies": {
 		"eslint": "^7.26.0"
