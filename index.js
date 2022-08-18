@@ -65,8 +65,8 @@ const refreshCalendar = async () => {
 
 
 app.get('/cal', (_, res) => calendar.serve(res));
-app.get('/cal/:dbId', (_, res) => calendar.serve(res));
 app.get('/cal/refresh', () => refreshCalendar());
+app.get('/cal/:dbId', (_, res) => calendar.serve(res));
 
 setInterval(refreshCalendar, interval);
 
