@@ -42,15 +42,19 @@ const refreshCalendar = async () => {
 			});
 
 			const results = response.results;
-			for (const event of results) {
-				const url = urlFromId(event.id, db.id);
-				const start = new Date(Date.parse(event.properties[dateProperty].date.start));
-				const end = event.properties[dateProperty].date.end ? new Date(Date.parse(event.properties[dateProperty].date.end)) : new Date(start.getTime() + 3600000);
-				const lastChange = event.last_edited_time;
+			for (const e of results) {
+				const url = urlFromId(e.id, db.id);
+				const start = new Date(Date.parse(e.properties[dateProperty].date.start));
+				const end = e.properties[dateProperty].date.end ? new Date(Date.parse(e.properties[dateProperty].date.end)) : -1;
+				const lastChange = e.last_edited_time;
 				// It goes:
 				// properties -> Name -> id: 'title' -> title Array
-				const title = (Object.values(event.properties).find((obj) => obj['id'] == 'title')).title[0].plain_text;
-				calendar.createEvent({ url: url, summary: title, start: start, end: end, description: `Last edited at: ${lastChange}` });
+				const title = (Object.values(e.properties).find((obj) => obj['id'] == 'title')).title[0].plain_text;
+				if (end == -1) {
+					calendar.createEvent({ url: url, summary: title, allDay: true, description: `Last edited at: ${lastChange}` });
+				} else {
+					calendar.createEvent({ url: url, summary: title, start: start, end: end, description: `Last edited at: ${lastChange}` });
+				}
 			}
 			logger.log(`Created ${results.length} events for database ${db.id}`);
 		}
@@ -59,12 +63,14 @@ const refreshCalendar = async () => {
 	}
 };
 
-app.get('/cal', (req, res) => calendar.serve(res));
-app.get('/cal/:dbId', (req, res) => calendar.serve(res));
+
+app.get('/cal', (_, res) => calendar.serve(res));
+app.get('/cal/:dbId', (_, res) => calendar.serve(res));
+app.get('/cal/refresh', () => refreshCalendar());
 
 setInterval(refreshCalendar, interval);
 
-app.listen(port, () => {
+app.listen((port), () => {
 	logger.log(`Listening on port ${port}`);
 	refreshCalendar();
 });

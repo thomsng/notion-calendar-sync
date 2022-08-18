@@ -1,7 +1,7 @@
 const moment = require('moment');
 
 module.exports = {
-	log: (content, type = 'log') => {
+	log: function(content, type = 'log') {
 		const timestamp = `[${moment().format('YYYY-MM-DD HH:mm:ss')}]:`;
 		switch (type) {
 		case 'log': {
@@ -19,7 +19,7 @@ module.exports = {
 		default: throw new TypeError('Logger type must be either warn, debug, log');
 		}
 	},
-	error: (...args) => this.log(...args, 'error'),
-	warn: (...args) => this.log(...args, 'warn'),
-	debug: (...args) => this.log(...args, 'debug'),
+	error: function(...args) {this.log(...args, 'error');},
+	warn: function(...args) {this.log(...args, 'warn');},
+	debug: function(...args) {this.log(...args, 'debug');},
 };
