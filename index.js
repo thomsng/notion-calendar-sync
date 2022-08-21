@@ -39,6 +39,12 @@ const refreshCalendar = async () => {
 						is_not_empty: true,
 					},
 				},
+				sorts: [
+					{
+						property: dateProperty,
+						direction: 'descending',
+					},
+				],
 			});
 
 			const results = response.results;
