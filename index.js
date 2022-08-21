@@ -57,7 +57,7 @@ const refreshCalendar = async () => {
 				// properties -> Name -> id: 'title' -> title Array
 				const title = (Object.values(e.properties).find((obj) => obj['id'] == 'title')).title[0].plain_text;
 				if (end == -1) {
-					calendar.createEvent({ url: url, summary: title, allDay: true, description: `Last edited at: ${lastChange}` });
+					calendar.createEvent({ url: url, summary: title, allDay: true, start: start, end: null, description: `Last edited at: ${lastChange}` });
 				} else {
 					calendar.createEvent({ url: url, summary: title, start: start, end: end, description: `Last edited at: ${lastChange}` });
 				}
